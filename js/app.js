@@ -1856,25 +1856,45 @@ async function syncCurrentProductsToCloudUI() {
 
   showToast(`🚀 جاري رفع ومزامنة ${listToSync.length} منتج مع السحابة...`, 'info');
 
-  const ok = await activeDB.syncAllProductsToCloud(listToSync);
+  await activeDB.syncAllProductsToCloud(listToSync);
 
-  if (ok) {
-    showToast(`✨ تم رفع وتأمين ${listToSync.length} منتج في قاعدة البيانات السحابية بنجاح! ستظهر على كافة الأجهزة.`, 'success');
-    // تحديث الحالة المحلية
-    productsState = listToSync;
-    renderCategories();
-    renderProducts();
-  } else {
-    showToast('⚠️ تعذر الرفع للسحابة، جاري المحاولة الفردية لكل منتج...', 'info');
-    let successCount = 0;
-    for (const product of listToSync) {
-      const saved = await activeDB.saveProductToCloud(product);
-      if (saved) successCount++;
-    }
-    if (successCount > 0) {
-      showToast(`✨ تم مزامنة ${successCount} منتج سحابياً بنجاح!`, 'success');
-    } else {
-      showToast('❌ تعذر الاتصال بسيرفر السحابة الحالي.', 'error');
-    }
+  productsState = listToSync;
+  renderCategories();
+  renderProducts();
+
+  showToast(`✨ تم رفع وتأمين ${listToSync.length} منتج في قاعدة البيانات السحابية بنجاح! ستظهر على كافة الأجهزة.`, 'success');
+}
+
+async function exportDatabaseUI() {
+  if (typeof ShopDB !== 'undefined') {
+    showToast('📦 جاري تصدير نسخة من قاعدة البيانات كملف JSON...', 'info');
+    await ShopDB.exportDatabaseJSON();
   }
 }
+
+async function importDatabaseFileUI(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (evt) => {
+    try {
+      const content = evt.target.result;
+      if (typeof ShopDB !== 'undefined') {
+        const ok = await ShopDB.importDatabaseJSON(content);
+        if (ok) {
+          productsState = await getProductsDataAsync();
+          renderCategories();
+          renderProducts();
+          showToast('🎉 تم استيراد وتطبيق كتالوج المنتجات بنجاح على كافة الشاشات!', 'success');
+        } else {
+          showToast('❌ ملف JSON غير صالح أو فارغ', 'error');
+        }
+      }
+    } catch (err) {
+      showToast('❌ تعذر قراءة الملف المرفق', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+

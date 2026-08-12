@@ -802,6 +802,17 @@
                 🚀 رفع الكتالوج الحالي للسحابة
               </button>
             </div>
+
+            <div class="flex gap-2 pt-2 border-t border-glass/40">
+              <button type="button" onclick="exportDatabaseUI()" class="btn btn-outline py-2 text-xs flex-1 text-cyan-300 border-cyan-500/40" title="تصدير جميع المنتجات كملف JSON لنسخها لأجهزة أخرى">
+                📦 تصدير نسختك (Export)
+              </button>
+
+              <label class="btn btn-outline py-2 text-xs flex-1 text-emerald-300 border-emerald-500/40 text-center cursor-pointer block" title="استيراد ملف JSON لنقل المنتجات فوراً">
+                <span>📥 استيراد نسخة (Import)</span>
+                <input type="file" accept=".json" class="hidden" onchange="importDatabaseFileUI(event)">
+              </label>
+            </div>
           </div>
         </form>
 

@@ -248,17 +248,6 @@ class ShopDatabase {
     } catch (e) {}
     return null;
   }
-      if (!data) return null;
-
-      let list = Array.isArray(data) ? data.filter(Boolean) : Object.values(data);
-      if (list && list.length > 0) {
-        this.syncCloudProductsToLocal(list);
-        this.notifyCloudListeners(list);
-        return list;
-      }
-    } catch (e) {}
-    return null;
-  }
 
   /**
    * مزامنة المنتجات القادمة من السحابة في IndexedDB & LocalStorage
@@ -354,9 +343,10 @@ class ShopDatabase {
       } catch (e) {}
     }
 
-    // 2. المزامنة والرفع إلى قاعدة البيانات السحابية (Firebase / REST)
     await this.saveProductToCloud(product);
     return true;
+  }
+
   /**
    * رفع ومزامنة الكتالوج الكامل إلى السحابة
    */

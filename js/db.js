@@ -620,6 +620,8 @@ class ShopDatabase {
   }
 }
 
-// إنشاء نسخة عامة من محرك قاعدة البيانات
+// إنشاء نسخة عامة من محرك قاعدة البيانات وإرفاقها بـ window
 const ShopDB = new ShopDatabase();
-
+if (typeof window !== 'undefined') {
+  window.ShopDB = ShopDB;
+}

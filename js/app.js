@@ -1826,10 +1826,19 @@ async function testCloudConnectionUI() {
 }
 
 async function syncCurrentProductsToCloudUI() {
-  if (typeof ShopDB === 'undefined') {
-    showToast('⚠️ قاعدة البيانات غير مهيأة بعد', 'warning');
-    return;
+  const targetDB = (typeof ShopDB !== 'undefined' ? ShopDB : (window.ShopDB || null));
+
+  if (!targetDB) {
+    if (typeof ShopDatabase !== 'undefined') {
+      window.ShopDB = new ShopDatabase();
+      await window.ShopDB.init();
+    } else {
+      showToast('⚡ جاري الاتصال بقاعدة البيانات... يرجى الضغط مرة أخرى خلال ثانية.', 'info');
+      return;
+    }
   }
+
+  const activeDB = window.ShopDB || ShopDB;
 
   // 1. استخدام productsState أو جلب كافة المنتجات من local storage أو البيانات المبدئية
   let listToSync = (productsState && productsState.length > 0) ? productsState : [];
@@ -1847,7 +1856,7 @@ async function syncCurrentProductsToCloudUI() {
 
   showToast(`🚀 جاري رفع ومزامنة ${listToSync.length} منتج مع السحابة...`, 'info');
 
-  const ok = await ShopDB.syncAllProductsToCloud(listToSync);
+  const ok = await activeDB.syncAllProductsToCloud(listToSync);
 
   if (ok) {
     showToast(`✨ تم رفع وتأمين ${listToSync.length} منتج في قاعدة البيانات السحابية بنجاح! ستظهر على كافة الأجهزة.`, 'success');
@@ -1859,7 +1868,7 @@ async function syncCurrentProductsToCloudUI() {
     showToast('⚠️ تعذر الرفع للسحابة، جاري المحاولة الفردية لكل منتج...', 'info');
     let successCount = 0;
     for (const product of listToSync) {
-      const saved = await ShopDB.saveProductToCloud(product);
+      const saved = await activeDB.saveProductToCloud(product);
       if (saved) successCount++;
     }
     if (successCount > 0) {

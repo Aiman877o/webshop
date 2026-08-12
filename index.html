@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#030712">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="متجر 3D">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  <!-- Security Headers & Anti-Clickjacking Protections -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
+  <title>متجر مُجَسَّم 3D | متجر النماذج والطباعة ثلاثية الأبعاد المخصصة</title>
+  <meta name="description" content="أول متجر عربي متكامل لبيع وحساب تكلفة النماذج والديكورات والقطع ثلاثية الأبعاد المعروضة بتقنية Three.js WebGL التفاعلية.">
+
+  <!-- CSS Framework (Tailwind CSS Utility CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Custom Style System -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Three.js 3D WebGL Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="antialiased">
+
+  <!-- ==================== Top Bar: World Language Translator Selector ==================== -->
+  <div class="bg-slate-950/90 backdrop-blur border-b border-cyan-500/20 py-1.5 px-4 text-xs text-gray-300 relative z-50">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      
+      <div class="hidden sm:flex items-center gap-2 text-gray-400 text-[11px]">
+        <span class="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        <span>منصة الطباعة المخصصة والنماذج ثلاثية الأبعاد</span>
+      </div>
+
+      <!-- Google Translate & World Language Selector -->
+      <div class="flex items-center gap-2 bg-slate-900/90 px-3 py-1 rounded-full border border-cyan-500/30 shadow-lg">
+        <span class="text-cyan-400 font-bold flex items-center gap-1.5 text-xs">
+          <span>🌐</span>
+          <span>لغة الموقع:</span>
+        </span>
+        
+        <select id="language-switcher-select" onchange="changeWebsiteLanguage(this.value)" class="form-select py-1 px-2.5 text-xs bg-slate-950 border border-cyan-500/40 text-cyan-300 rounded-lg cursor-pointer">
+          <option value="ar">🇸🇦 العربية (Arabic)</option>
+          <option value="en">🇬🇧 English (الإنجليزية)</option>
+          <option value="de">🇩🇪 Deutsch (الألمانية)</option>
+          <option value="fr">🇫🇷 Français (الفرنسية)</option>
+          <option value="es">🇪🇸 Español (الإسبانية)</option>
+          <option value="tr">🇹🇷 Türkçe (التركية)</option>
+          <option value="ru">🇷🇺 Русский (الروسية)</option>
+          <option value="zh-CN">🇨🇳 中文 (الصينية)</option>
+          <option value="it">🇮🇹 Italiano (الإيطالية)</option>
+          <option value="nl">🇳🇱 Nederlands (الهولندية)</option>
+        </select>
+
+        <div id="google_translate_element" class="hidden"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 1. القائمة العلوية (Navbar) ==================== -->
+  <header class="sticky top-0 z-40 glass-nav py-3 px-4 md:px-8">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      
+      <!-- اللوجو والهوية -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-400 to-pink-500 flex items-center justify-center text-black font-black text-xl shadow-lg group-hover:scale-105 transition-transform">
+          3D
+        </div>
+        <div>
+          <span class="text-xl font-black text-white tracking-wide block leading-tight">مُجَسَّم <span class="text-cyan-400">3D</span></span>
+          <span class="text-xs text-gray-400 block font-medium">عالم الطباعة والتصميم ثلاثي الأبعاد</span>
+        </div>
+      </a>
+
+      <!-- روابط التنقل -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-300">
+        <a href="#" class="hover:text-cyan-400 transition-colors text-cyan-400 font-bold">الرئيسية 🏠</a>
+        <a href="#products-section" class="hover:text-cyan-400 transition-colors">المنتجات 🛒</a>
+        <button onclick="openEmailContactModal()" class="hover:text-cyan-400 transition-colors bg-transparent border-none cursor-pointer">
+          تواصل بالإيميل 📧
+        </button>
+        <button onclick="requireAdminAuth(openImageManagerModal)" class="hover:text-cyan-400 transition-colors bg-transparent border-none cursor-pointer">
+          إدارة النماذج 🎲
+        </button>
+        <button onclick="requireAdminAuth(openAddProductModal)" class="hover:text-cyan-400 transition-colors bg-transparent border-none cursor-pointer">
+          إضافة منتج ➕
+        </button>
+        <button id="admin-auth-nav-btn" onclick="handleAdminAuthButtonClick()" class="text-xs py-1 px-3 rounded-full border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer flex items-center gap-1">
+          <span>🔐</span>
+          <span id="admin-nav-text">دخول المدير</span>
+        </button>
+        <button id="cloud-status-nav-btn" onclick="openCloudConfigModal()" class="text-xs py-1 px-3 rounded-full border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/10 transition-colors cursor-pointer flex items-center gap-1.5" title="إعدادات وحالة قاعدة البيانات السحابية المشركة">
+          <span id="cloud-status-icon" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="cloud-status-text">سحابي متصل ☁️</span>
+        </button>
+      </nav>
+
+      <!-- شريط البحث السريع وسلة التسوق -->
+      <div class="flex items-center gap-3">
+        <!-- البحث -->
+        <div class="relative hidden sm:block w-48 lg:w-64">
+          <input 
+            type="text" 
+            id="search-input"
+            placeholder="ابحث عن مجسم أو قطعة..." 
+            class="form-input text-xs pr-9 py-2 rounded-full"
+          >
+          <span class="absolute right-3 top-2.5 text-gray-400 text-xs">🔍</span>
+        </div>
+
+        <!-- زر إضافة منتج للـ Mobile -->
+        <button onclick="requireAdminAuth(openAddProductModal)" class="md:hidden btn btn-outline text-xs px-3 py-2">
+          ➕ جديد
+        </button>
+
+        <!-- زر السلة -->
+        <button id="cart-toggle-btn" class="btn btn-primary relative text-sm py-2 px-4 flex items-center gap-2">
+          <span>السلة</span>
+          <span>🛒</span>
+          <span id="cart-count-badge" class="badge badge-pink absolute -top-2 -left-2 text-xs py-0.5 px-2 hidden">0</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==================== 2. قسم الرأس التفاعلي (Hero Section) ==================== -->
+  <section class="relative pt-16 pb-16 px-4 md:px-8 overflow-hidden text-center">
+    <div class="max-w-4xl mx-auto space-y-6">
+      
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
+        عالم التجسيم <br>
+        <span class="gradient-text-pink">ثلاثي الأبعاد بين يديك</span>
+      </h1>
+      
+      <p class="text-gray-300 text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
+        استكشف تشكيلة مميزة من الديكورات، القطع الميكانيكية، والمجسمات العصرية، أو صمم واطلب مجسمك بمواصفات دقيقة وحاسبة تكلفة آلية فورية.
+      </p>
+
+      <!-- أزرار الإجراءات -->
+      <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+        <a href="#products-section" class="btn btn-primary text-base py-3 px-8">
+          تصفح المتجر 🛒
+        </a>
+      </div>
+
+      <!-- ميزات سريعة -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-10 border-t border-glass max-w-3xl mx-auto">
+        <div class="glass-card p-4 rounded-2xl">
+          <span class="block text-3xl font-black text-cyan-400 mb-1">100%</span>
+          <span class="text-xs text-gray-300 font-bold">دقة تفاصيل عالية</span>
+        </div>
+        <div class="glass-card p-4 rounded-2xl">
+          <span class="block text-3xl font-black text-pink-500 mb-1">تخصيص</span>
+          <span class="text-xs text-gray-300 font-bold">خامات وألوان متنوعة</span>
+        </div>
+        <div class="glass-card p-4 rounded-2xl">
+          <span class="block text-3xl font-black text-gold-400 mb-1">فوري</span>
+          <span class="text-xs text-gray-300 font-bold">حساب التكلفة والطباعة</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== 3. قسم تصفح الكتالوج والتصنيفات ==================== -->
+  <section id="products-section" class="py-16 px-4 md:px-8 max-w-7xl mx-auto">
+    
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 border-b border-glass pb-6">
+      <div>
+        <span class="badge badge-pink text-xs mb-2">معرض المنتجات</span>
+        <h2 class="text-3xl md:text-4xl font-black text-white">استكشف الكتالوج ثلاثي الأبعاد</h2>
+      </div>
+
+      <!-- الترتيب والبحث -->
+      <div class="flex items-center gap-3">
+        <select id="sort-select" class="form-select text-xs w-48">
+          <option value="popular">الأكثر شعبية</option>
+          <option value="price-low">السعر: من الأقل للأعلى</option>
+          <option value="price-high">السعر: من الأعلى للأقل</option>
+          <option value="rating">الأعلى تقييماً</option>
+        </select>
+        <span id="products-count" class="text-xs text-gray-400 font-bold whitespace-nowrap">0 منتج</span>
+      </div>
+    </div>
+
+    <!-- أزرار التصنيفات -->
+    <div id="categories-list" class="flex items-center gap-3 overflow-x-auto pb-4 mb-8 no-scrollbar">
+      <!-- يتم حقن أزرار التصنيفات ديناميكياً -->
+    </div>
+
+    <!-- شبكة المنتجات (Products Grid) -->
+    <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- يتم حقن بطاقات المنتجات ديناميكياً من app.js -->
+    </div>
+
+  </section>
+
+
+
+  <!-- ==================== 5. النافذة المنبثقة لإضافة منتج جديد (Add Product Modal) ==================== -->
+  <div id="add-product-modal" class="modal-backdrop">
+    <div class="modal-content glass-card p-6 md:p-8 rounded-3xl max-w-xl mx-auto text-right">
+      
+      <div class="flex items-center justify-between border-b border-glass pb-4 mb-6">
+        <h3 class="text-2xl font-black text-cyan-400">➕ إضافة منتج 3D جديد إلى المتجر</h3>
+        <button onclick="closeAddProductModal()" class="text-gray-400 hover:text-white text-2xl cursor-pointer">&times;</button>
+      </div>
+
+      <form id="add-product-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">اسم المنتج:</label>
+          <input type="text" id="new-p-name" required placeholder="مثال: مزهرية هندسية بيضاء" class="form-input">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">التصنيف (اكتب تصنيفاً مخصصاً أو اختر):</label>
+            <input 
+              type="text" 
+              id="new-p-category" 
+              list="category-suggestions" 
+              required 
+              placeholder="اكتب تصنيفاً جديداً بحرية..." 
+              class="form-input text-xs"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">السعر (€ / يورو):</label>
+            <input type="number" id="new-p-price" required min="1" placeholder="35" class="form-input">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">المادة الخام (Material):</label>
+          <input type="text" id="new-p-material" placeholder="مثال: PLA Silk+ أو PETG" class="form-input text-xs">
+        </div>
+
+        <!-- الأبعاد والوزن -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">الطول (سم):</label>
+            <input type="number" id="new-p-length" min="1" placeholder="10" class="form-input text-xs text-center">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">العرض (سم):</label>
+            <input type="number" id="new-p-width" min="1" placeholder="10" class="form-input text-xs text-center">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">الارتفاع (سم):</label>
+            <input type="number" id="new-p-height" min="1" placeholder="15" class="form-input text-xs text-center">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">الوزن (غرام):</label>
+            <input type="number" id="new-p-weight" min="1" placeholder="180" class="form-input text-xs text-center">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">صورة المنتج (رفع صورة، اختيار جاهزة، أو رابط):</label>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+            <div>
+              <span class="text-xs text-gray-400 block mb-1">رفع صورة من الجهاز 📁:</span>
+              <input type="file" id="new-p-image-file" accept="image/*" class="form-input text-xs py-1">
+            </div>
+            <div>
+              <span class="text-xs text-gray-400 block mb-1">أو رابط صورة مباشر 🌐:</span>
+              <input type="text" id="new-p-image-url" placeholder="https://example.com/image.jpg" class="form-input text-xs">
+            </div>
+          </div>
+
+
+
+          <!-- صندوق المعاينة الفورية المباشرة للصورة المختارة -->
+          <div id="image-live-preview-box" class="hidden mt-3 p-3 glass-card rounded-xl border border-amber-500/40 bg-slate-900/80 flex items-center gap-3">
+            <img id="image-live-preview-img" src="" alt="معاينة الصورة" class="w-16 h-16 object-cover rounded-lg border border-glass">
+            <div class="flex-1">
+              <span class="text-xs font-bold text-amber-400 block">✨ تم اختيار المعاينة الفورية للصورة</span>
+              <span class="text-[10px] text-gray-400 block">سيتم حفظ هذه الصورة وتخزينها تلقائياً في قاعدة البيانات فور النشر.</span>
+            </div>
+            <button type="button" onclick="clearLiveImagePreview()" class="text-xs text-red-400 hover:text-red-300 font-bold px-2 py-1">إلغاء</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">وصف المنتج:</label>
+          <textarea id="new-p-desc" required rows="3" placeholder="اكتب وصفاً جذاباً للمجسم ثلاثي الأبعاد..." class="form-textarea"></textarea>
+        </div>
+
+        <div class="flex items-center gap-3 pt-4 border-t border-glass">
+          <button type="submit" class="btn btn-primary flex-1 py-3 text-center">
+            ✨ نشر المنتج في المتجر
+          </button>
+          <button type="button" onclick="closeAddProductModal()" class="btn btn-outline py-3">إلغاء</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ==================== 5.5. النافذة المنبثقة لتعديل بيانات المنتج (Edit Product Modal) ==================== -->
+  <div id="edit-product-modal" class="modal-backdrop">
+    <div class="modal-content glass-card p-6 md:p-8 rounded-3xl max-w-xl mx-auto text-right">
+      
+      <div class="flex items-center justify-between border-b border-glass pb-4 mb-6">
+        <h3 class="text-2xl font-black text-amber-400">✏️ تعديل بيانات المنتج</h3>
+        <button onclick="closeEditProductModal()" class="text-gray-400 hover:text-white text-2xl cursor-pointer">&times;</button>
+      </div>
+
+      <form id="edit-product-form" class="space-y-4">
+        <input type="hidden" id="edit-p-id">
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">اسم المنتج:</label>
+          <input type="text" id="edit-p-name" required class="form-input">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">التصنيف (اكتب تصنيفاً مخصصاً أو اختر):</label>
+            <input 
+              type="text" 
+              id="edit-p-category" 
+              list="category-suggestions" 
+              required 
+              placeholder="اكتب تصنيفاً مخصصاً..." 
+              class="form-input text-xs"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">السعر (€ / يورو):</label>
+            <input type="number" id="edit-p-price" required min="1" class="form-input">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">المادة الخام (Material):</label>
+          <input type="text" id="edit-p-material" class="form-input text-xs">
+        </div>
+
+        <!-- الأبعاد والوزن -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">الطول (سم):</label>
+            <input type="number" id="edit-p-length" min="1" placeholder="10" class="form-input text-xs text-center">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">العرض (سم):</label>
+            <input type="number" id="edit-p-width" min="1" placeholder="10" class="form-input text-xs text-center">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">الارتفاع (سم):</label>
+            <input type="number" id="edit-p-height" min="1" placeholder="15" class="form-input text-xs text-center">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">الوزن (غرام):</label>
+            <input type="number" id="edit-p-weight" min="1" placeholder="180" class="form-input text-xs text-center">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">صورة المنتج (تغيير الصورة أو الرابط):</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+            <div>
+              <span class="text-xs text-gray-400 block mb-1">رفع صورة جديدة من الجهاز 📁:</span>
+              <input type="file" id="edit-p-image-file" accept="image/*" class="form-input text-xs py-1">
+            </div>
+            <div>
+              <span class="text-xs text-gray-400 block mb-1">رابط صورة جديد 🌐:</span>
+              <input type="text" id="edit-p-image-url" class="form-input text-xs">
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">وصف المنتج:</label>
+          <textarea id="edit-p-desc" required rows="3" class="form-textarea"></textarea>
+        </div>
+
+        <div class="flex items-center gap-3 pt-4 border-t border-glass">
+          <button type="submit" class="btn btn-primary flex-1 py-3 text-center">
+            💾 حفظ التعديلات
+          </button>
+          <button type="button" onclick="closeEditProductModal()" class="btn btn-outline py-3">إلغاء</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ==================== 6. النافذة المنبثقة للتفاصيل الكبيرة والمعاينة 3D (Product Details Modal) ==================== -->
+  <div id="product-detail-modal" class="modal-backdrop">
+    <div class="modal-content glass-card p-6 rounded-3xl max-w-4xl mx-auto text-right my-8">
+      
+      <div class="flex items-center justify-between border-b border-glass pb-3 mb-4">
+        <div>
+          <span id="modal-product-category" class="badge badge-cyan text-xs">التصنيف</span>
+          <h3 id="modal-product-title" class="text-2xl font-black text-white mt-1">اسم المنتج</h3>
+        </div>
+        <button onclick="closeProductModal()" class="text-gray-400 hover:text-white text-2xl cursor-pointer">&times;</button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- عرض صورة المنتج فقط -->
+        <div class="lg:col-span-7 flex flex-col gap-3">
+          <div class="glass-card rounded-2xl p-2 relative overflow-hidden bg-slate-950">
+            <div id="modal-image-view" class="w-full h-80 sm:h-96 rounded-xl overflow-hidden flex items-center justify-center bg-black/40">
+              <img id="modal-product-img-element" src="" alt="صورة المنتج" class="w-full h-full object-cover rounded-xl">
+            </div>
+          </div>
+        </div>
+
+        <!-- التفاصيل والمواصفات -->
+        <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
+          <div>
+            <p id="modal-product-desc" class="text-gray-300 text-sm leading-relaxed mb-6">الوصف...</p>
+
+            <div class="space-y-2.5 text-xs text-gray-300 border-t border-b border-glass py-4 mb-6 bg-slate-950/60 p-3 rounded-xl">
+              <div class="flex justify-between border-b border-glass/30 pb-1.5">
+                <span class="text-gray-400 font-bold">🧪 الخامة الأساسية:</span>
+                <span id="modal-product-material" class="font-bold text-cyan-400">-</span>
+              </div>
+              <div class="flex justify-between border-b border-glass/30 pb-1.5">
+                <span class="text-gray-400 font-bold">📏 الطول:</span>
+                <span id="modal-product-length" class="font-bold text-white">-</span>
+              </div>
+              <div class="flex justify-between border-b border-glass/30 pb-1.5">
+                <span class="text-gray-400 font-bold">📐 العرض:</span>
+                <span id="modal-product-width" class="font-bold text-white">-</span>
+              </div>
+              <div class="flex justify-between border-b border-glass/30 pb-1.5">
+                <span class="text-gray-400 font-bold">↕️ الارتفاع:</span>
+                <span id="modal-product-height" class="font-bold text-white">-</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-400 font-bold">⚖️ الوزن التقديري:</span>
+                <span id="modal-product-weight" class="font-bold text-gold-400">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs text-gray-400">السعر الإجمالي</span>
+              <span id="modal-product-price" class="text-3xl font-black text-cyan-400">0 €</span>
+            </div>
+
+            <div class="flex gap-2">
+              <button id="modal-add-to-cart-btn" class="btn btn-primary flex-1 py-3 text-center text-sm">
+                🛒 إضافة للسلة
+              </button>
+              <button id="modal-edit-product-btn" class="btn btn-outline py-3 px-4 text-xs font-bold" title="تعديل بيانات المنتج">
+                ✏️ تعديل
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 6.5. لوحة التحكم بجميع الصور (Image Control Dashboard Modal) ==================== -->
+  <div id="image-manager-modal" class="modal-backdrop">
+    <div class="modal-content glass-card p-6 md:p-8 rounded-3xl max-w-5xl mx-auto text-right my-6">
+      
+      <div class="flex items-center justify-between border-b border-glass pb-4 mb-6">
+        <div>
+          <span class="badge badge-cyan text-xs">إدارة الوسائط والمعرض</span>
+          <h3 class="text-2xl font-black text-amber-400 mt-1">🖼️ لوحة التحكم بجميع الصور</h3>
+        </div>
+        <button onclick="closeImageManagerModal()" class="text-gray-400 hover:text-white text-2xl cursor-pointer">&times;</button>
+      </div>
+
+      <!-- أدوات التحكم والرفع السريع -->
+      <div class="glass-card p-4 rounded-2xl mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-glass bg-slate-900/60">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <label class="btn btn-primary text-xs cursor-pointer py-2.5 px-4 flex items-center gap-2">
+            <span>➕ رفع صورة جديدة وتخصيصها</span>
+            <input type="file" id="manager-upload-input" accept="image/*" class="hidden" onchange="handleGlobalImageUpload(event)">
+          </label>
+          <span class="text-xs text-gray-400">تتيح لك اللوحة التحكم الكامل بصور المنتجات وتغييرها فورياً.</span>
+        </div>
+
+        <input 
+          type="text" 
+          id="image-search-input" 
+          placeholder="ابحث عن صورة منتج..." 
+          oninput="renderImageManagerGrid()"
+          class="form-input text-xs w-full sm:w-64"
+        >
+      </div>
+
+      <!-- شبكة الصور المتحكم بها -->
+      <div id="image-manager-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto p-1">
+        <!-- يتم حقن صور المنتجات ديناميكياً -->
+      </div>
+
+      <div class="flex justify-end pt-6 border-t border-glass mt-6">
+        <button onclick="closeImageManagerModal()" class="btn btn-outline py-2 px-6 text-sm">إغلاق اللوحة</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 7. السلة الجانبية (Cart Drawer) ==================== -->
+  <aside id="cart-drawer" class="cart-drawer text-right">
+    
+    <div class="p-5 border-b border-glass flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🛒</span>
+        <h3 class="text-xl font-bold text-white">سلة التسوق</h3>
+      </div>
+      <button id="cart-close-btn" class="text-gray-400 hover:text-white text-2xl cursor-pointer">&times;</button>
+    </div>
+
+    <!-- قائمة العناصر -->
+    <div id="cart-items-container" class="flex-1 overflow-y-auto p-5 space-y-3">
+      <!-- يتم حقن عناصر السلة هنا -->
+    </div>
+
+    <!-- الكوبون والحساب النهائي -->
+    <div class="p-5 border-t border-glass space-y-4 bg-slate-950/80">
+      
+      <!-- مدخل الكوبون -->
+      <div class="flex gap-2">
+        <input type="text" id="coupon-input" placeholder="رمز الكوبون (ARABIC3D)" class="form-input text-xs uppercase">
+        <button id="apply-coupon-btn" class="btn btn-outline text-xs px-3">تطبيق</button>
+      </div>
+
+      <div class="space-y-1.5 text-xs text-gray-300">
+        <div class="flex justify-between">
+          <span>المجموع الفرعي:</span>
+          <span id="cart-subtotal" class="font-bold text-white">0 €</span>
+        </div>
+        <div class="flex justify-between text-green-400">
+          <span>الحسم:</span>
+          <span id="cart-discount">0 €</span>
+        </div>
+        <div class="flex justify-between text-base font-black text-cyan-400 border-t border-glass pt-2">
+          <span>الإجمالي النهائي:</span>
+          <span id="cart-total">0 €</span>
+        </div>
+      </div>
+
+      <button id="checkout-btn" class="btn btn-primary w-full py-3 text-center text-sm font-bold flex items-center justify-center gap-2">
+        <span>📦 إدخال بيانات التوصيل وإتمام الطلب</span>
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ==================== النافذة المنبثقة لإدخال بيانات العميل وإتمام الطلب (Customer Checkout Modal) ==================== -->
+  <div id="customer-checkout-modal" class="modal-backdrop">
+    <div class="modal-content glass-card p-6 md:p-8 rounded-3xl max-w-lg mx-auto text-right border border-cyan-500/40 my-8">
+      
+      <div class="flex items-center justify-between border-b border-glass pb-4 mb-6">
+        <div>
+          <span class="badge badge-cyan text-xs">خطوة التوصيل وإرسال الطلب</span>
+          <h3 class="text-2xl font-black text-white mt-1">📝 أدخل بياناتك لاستلام الطلب</h3>
+        </div>
+        <button onclick="closeCustomerCheckoutModal()" class="text-gray-400 hover:text-white text-2xl cursor-pointer">&times;</button>
+      </div>
+
+      <form id="customer-checkout-form" onsubmit="handleCustomerCheckoutSubmit(event)" class="space-y-4">
+        <!-- اسم العميل -->
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">الاسم الكامل (Full Name): <span class="text-red-400">*</span></label>
+          <input type="text" id="customer-name" required placeholder="مثال: محمد أحمد" class="form-input text-xs">
+        </div>
+
+        <!-- رقم الهاتف / الواتساب -->
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">رقم الهاتف / الواتساب (Phone Number): <span class="text-red-400">*</span></label>
+          <input type="tel" id="customer-phone" required placeholder="مثال: 0031612345678" class="form-input text-xs font-mono" dir="ltr">
+        </div>
+
+        <!-- عنوان الشحن والتوصيل -->
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">عنوان التوصيل والمدينة (Shipping Address): <span class="text-red-400">*</span></label>
+          <input type="text" id="customer-address" required placeholder="المدينة، الشارع، رقم البناء..." class="form-input text-xs">
+        </div>
+
+        <!-- ملاحظات خاصة بالطلب -->
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">ملاحظات أو طلبات خاصة (Order Notes):</label>
+          <textarea id="customer-notes" rows="2" placeholder="أي تفاصيل خاصة بالألوان أو أوقات التوصيل..." class="form-textarea text-xs"></textarea>
+        </div>
+
+        <!-- ملخص المنتجات والإجمالي -->
+        <div id="checkout-summary-box" class="p-3 glass-card rounded-xl bg-slate-900/80 border border-glass space-y-1.5 text-xs text-gray-300">
+          <div class="flex justify-between border-b border-glass/30 pb-1">
+            <span class="text-gray-400">عدد المنتجات المطلوبة:</span>
+            <span id="checkout-summary-count" class="font-bold text-white">0</span>
+          </div>
+          <div class="flex justify-between text-base font-black text-cyan-400 pt-1">
+            <span>الإجمالي النهائي:</span>
+            <span id="checkout-summary-total">0 €</span>
+          </div>
+        </div>
+
+        <!-- زر الإرسال النهائي -->
+        <div class="flex items-center gap-3 pt-4 border-t border-glass">
+          <button type="submit" class="btn btn-primary flex-1 py-3 text-center text-sm font-bold flex items-center justify-center gap-2">
+            <span>تأكيد وإرسال الطلب الآن</span>
+            <span>🚀</span>
+          </button>
+          <button type="button" onclick="closeCustomerCheckoutModal()" class="btn btn-outline py-3 text-xs">إلغاء</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ==================== 8. التذييل (Footer) ==================== -->
+  <footer class="mt-20 border-t border-glass py-12 px-4 md:px-8 text-center text-gray-400 text-xs">
+    <div class="max-w-7xl mx-auto space-y-4">
+      <div class="flex items-center justify-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-amber-500 text-black font-black flex items-center justify-center text-sm">3D</div>
+        <span class="text-lg font-bold text-white">متجر مُجَسَّم 3D</span>
+      </div>
+      <p>أول منصة متكاملة للنماذج ثلاثية الأبعاد المعروضة بتقنيات ثلاثية الأبعاد تفاعلية WebGL / Three.js</p>
+      
+      <!-- أدوات إدارة قاعدة البيانات والصور والعودة للرئيسية والبريد -->
+      <div class="pt-4 flex flex-wrap items-center justify-center gap-3">
+        <button onclick="openEmailContactModal()" class="btn btn-pink text-xs py-2 px-5 rounded-full inline-flex items-center gap-2">
+          📧 تواصل معنا عبر البريد الإلكتروني
+        </button>
+        <a href="#" class="btn btn-primary text-xs py-2 px-5 rounded-full inline-flex items-center gap-2">
+          🏠 العودة إلى القائمة الرئيسية
+        </a>
+        <button onclick="requireAdminAuth(() => ShopDB.exportDatabaseJSON())" class="btn btn-outline text-xs py-1.5 px-4">
+          💾 تصدير نسخة احتياطية من قاعدة البيانات (JSON)
+        </button>
+      </div>
+
+      <p class="text-gray-500 pt-2">جميع الحقوق محفوظة © 2026 - متجر مُجَسَّم 3D</p>
+    </div>
+  </footer>
+
+  <!-- ==================== نافذة تسجيل دخول مدير الموقع (Admin Login Modal) ==================== -->
+  <div id="admin-login-modal" class="modal-backdrop">
+    <div class="modal-content glass-card p-6 md:p-8 rounded-3xl max-w-md mx-auto text-right my-8 border border-amber-500/40">
+      
+      <div class="flex items-center justify-between border-b border-glass pb-4 mb-6">
+        <div>
+          <span class="badge badge-pink text-xs">منطقة المحظورات والإدارة</span>
+          <h3 class="text-2xl font-black text-amber-400 mt-1">🔐 تسجيل دخول مدير الموقع</h3>
+        </div>
+        <button onclick="closeAdminLoginModal()" class="text-gray-400 hover:text-white text-2xl cursor-pointer">&times;</button>
+      </div>
+
+      <form id="admin-login-form" onsubmit="handleAdminLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">أدخل كلمة سر مدير الموقع:</label>
+          <input 
+            type="password" 
+            id="admin-password-input" 
+            required 
+            placeholder="كلمة السر الافتراضية: admin123" 
+            class="form-input text-xs"
+          >
+          <p class="text-[11px] text-amber-400/90 mt-1.5">💡 كلمة السر الافتراضية هي: <code class="bg-black/60 px-1.5 py-0.5 rounded font-mono text-white">admin123</code> (يمكنك تغييرها أدناه في أي وقت).</p>
+        </div>
+
+        <div class="flex items-center gap-3 pt-4 border-t border-glass">
+          <button type="submit" class="btn btn-primary flex-1 py-3 text-center text-sm font-bold flex items-center justify-center gap-2">
+            <span>تأكيد تسجيل الدخول</span>
+            <span>🔓</span>
+          </button>
+          <button type="button" onclick="closeAdminLoginModal()" class="btn btn-outline py-3 text-xs">إلغاء</button>
+        </div>
+      </form>
+
+      <!-- خيار تغيير كلمة السر للمدير -->
+      <div class="mt-6 pt-4 border-t border-glass text-center">
+        <button type="button" onclick="toggleChangePasswordBox()" class="text-xs text-gray-400 hover:text-cyan-400 underline cursor-pointer">
+          🔑 تغيير كلمة سر المدير
+        </button>
+
+        <div id="change-password-box" class="hidden mt-3 p-3 glass-card rounded-xl text-right space-y-2 border border-glass bg-slate-900/80">
+          <input type="password" id="old-admin-pass" placeholder="كلمة السر الحالية..." class="form-input text-xs">
+          <input type="password" id="new-admin-pass" placeholder="كلمة السر الجديدة..." class="form-input text-xs">
+          <button type="button" onclick="saveNewAdminPassword()" class="btn btn-primary text-xs py-2 px-4 w-full">💾 حفظ كلمة السر الجديدة</button>
+        </div>
+      </div>
+
+      <!-- خيار ضبط رابط سيرفر الإرسال إلى Alstv3000@gmail.com (Formspree Endpoint) -->
+      <div class="mt-4 pt-4 border-t border-glass text-center">
+        <button type="button" onclick="toggleFormspreeBox()" class="text-xs text-gray-400 hover:text-cyan-400 underline cursor-pointer">
+          ⚙️ رابط خادم الإرسال الآلي للإيميل (Formspree Endpoint)
+        </button>
+
+        <div id="formspree-box" class="hidden mt-3 p-3 glass-card rounded-xl text-right space-y-2 border border-cyan-500/30 bg-slate-900/90">
+          <label class="block text-[11px] font-bold text-cyan-300">رابط Formspree الخاص بك للإرسال المباشر إلى Alstv3000@gmail.com:</label>
+          <input type="text" id="formspree-endpoint-input" placeholder="مثال: https://formspree.io/f/xzygqvpa" class="form-input text-xs">
+          <button type="button" onclick="saveFormspreeEndpoint()" class="btn btn-primary text-xs py-2 px-4 w-full">💾 حفظ رابط سيرفر الإرسال</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== نافذة المراسلة عبر البريد الإلكتروني (Email Contact Modal) ==================== -->
+  <div id="email-contact-modal" class="modal-backdrop">
+    <div class="modal-content glass-card p-6 md:p-8 rounded-3xl max-w-lg mx-auto text-right my-8">
+      
+      <div class="flex items-center justify-between border-b border-glass pb-4 mb-6">
+        <div>
+          <span class="badge badge-cyan text-xs">خدمة العملاء والدعم</span>
+          <h3 class="text-2xl font-black text-white mt-1">📧 المراسلة عبر البريد الإلكتروني</h3>
+        </div>
+        <button onclick="closeEmailContactModal()" class="text-gray-400 hover:text-white text-2xl cursor-pointer">&times;</button>
+      </div>
+
+      <form id="email-contact-form" onsubmit="handleEmailContactSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">الاسم الكامل:</label>
+          <input type="text" id="email-sender-name" required placeholder="أدخل اسمك الكريم..." class="form-input text-xs">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">بريدك الإلكتروني للرد:</label>
+          <input type="email" id="email-sender-address" required placeholder="name@example.com" class="form-input text-xs">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">موضوع الرسالة:</label>
+          <input type="text" id="email-subject" required placeholder="استفسار، طلب خاص، أو طلب دعم..." class="form-input text-xs">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">نص الرسالة والاستفسار:</label>
+          <textarea id="email-message-body" required rows="4" placeholder="اكتب تفاصيل استفسارك أو طلبك هنا..." class="form-textarea text-xs"></textarea>
+        </div>
+
+        <div class="flex items-center gap-3 pt-4 border-t border-glass">
+          <button type="submit" class="btn btn-primary flex-1 py-3 text-center text-sm font-bold flex items-center justify-center gap-2">
+            <span>إرسال عبر البريد الإلكتروني</span>
+            <span>✉️</span>
+          </button>
+          <button type="button" onclick="closeEmailContactModal()" class="btn btn-outline py-3 text-xs">إلغاء</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ==================== نافذة إعدادات قاعدة البيانات السحابية (Cloud Database Modal) ==================== -->
+  <div id="cloud-config-modal" class="modal-backdrop">
+    <div class="modal-content glass-card p-6 md:p-8 rounded-3xl max-w-lg mx-auto text-right my-8">
+      
+      <div class="flex items-center justify-between border-b border-glass pb-4 mb-6">
+        <div>
+          <span class="badge badge-cyan text-xs">مزامنة فورية للجميع</span>
+          <h3 class="text-2xl font-black text-white mt-1">☁️ قاعدة البيانات السحابية</h3>
+        </div>
+        <button onclick="closeCloudConfigModal()" class="text-gray-400 hover:text-white text-2xl cursor-pointer">&times;</button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="p-3 bg-cyan-950/40 border border-cyan-500/30 rounded-xl text-xs text-gray-300">
+          <p class="font-bold text-cyan-300 mb-1">💡 كيف تعمل المزامنة السحابية؟</p>
+          <p>عند تعديل أو إضافة أو حذف أي منتج، يتم التحديث في السحابة وتنعكس التغييرات تلقائياً لدى جميع الزوار والمستخدمين في نفس اللحظة بدون إعادة تحميل الصفحة!</p>
+        </div>
+
+        <form id="cloud-config-form" onsubmit="handleCloudConfigSubmit(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">رابط خادم قاعدة البيانات (Firebase / Cloud REST URL):</label>
+            <input type="url" id="cloud-url-input" required placeholder="https://your-app.firebaseio.com" class="form-input text-xs">
+            <span class="text-[10px] text-gray-400 block mt-1">يمكنك استخدام خادم Firebase Realtime DB المجاني أو خادمك الخاص.</span>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <span class="text-xs font-bold text-gray-300">تفعيل التزامن السحابي المباشر:</span>
+            <input type="checkbox" id="cloud-enabled-checkbox" class="w-4 h-4 accent-cyan-500 cursor-pointer" checked>
+          </div>
+
+          <div class="pt-4 flex flex-col gap-2 border-t border-glass">
+            <button type="submit" class="btn btn-primary py-3 text-xs font-bold w-full flex items-center justify-center gap-2">
+              <span>💾 حفظ الإعدادات وإعادة الاتصال بالسحابة</span>
+            </button>
+
+            <div class="flex gap-2">
+              <button type="button" onclick="testCloudConnectionUI()" class="btn btn-outline py-2 text-xs flex-1">
+                ⚡ اختبار الاتصال الآن
+              </button>
+
+              <button type="button" onclick="syncCurrentProductsToCloudUI()" class="btn btn-outline py-2 text-xs flex-1 text-amber-300 border-amber-500/40">
+                🚀 رفع الكتالوج الحالي للسحابة
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div class="pt-2 text-center">
+          <button type="button" onclick="closeCloudConfigModal()" class="text-xs text-gray-400 hover:text-white underline">إغلاق النافذة</button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== زر العودة العائم إلى القائمة الرئيسية (Floating Back to Home) ==================== -->
+  <a 
+    href="#" 
+    id="back-to-home-btn"
+    class="fixed bottom-6 left-6 z-40 btn btn-primary text-xs py-2.5 px-4 rounded-full shadow-2xl flex items-center gap-2 transition-all duration-300 hover:scale-105 border border-amber-400/40"
+    title="العودة إلى القائمة الرئيسية ورأس الصفحة">
+    <span>🏠</span>
+    <span>العودة للرئيسية</span>
+    <span>⬆️</span>
+  </a>
+
+  <!-- قائمة الاقتراحات التلقائية للتصنيفات المخصصة -->
+  <datalist id="category-suggestions">
+    <option value="مجسمات وديكورات"></option>
+    <option value="قطع ميكانيكية"></option>
+    <option value="إكسسوارات ومجوهرات"></option>
+    <option value="زخارف وعمارة عربية"></option>
+    <option value="ملفات ثلاثية الأبعاد"></option>
+    <option value="طبل وإيقاع 🥁"></option>
+    <option value="ألعاب ومجسمات مرنة 🐉"></option>
+    <option value="نماذج هندسية 📐"></option>
+  </datalist>
+
+  <!-- Google Translate Initialization Script -->
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'ar',
+        includedLanguages: 'ar,en,de,fr,es,tr,ru,zh-CN,he,it,pt,nl,fa,ur,ja',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <!-- Firebase Web SDK (Compat version for client-side Realtime Database) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Application Scripts -->
+  <script src="js/db.js"></script>
+  <script src="js/productsData.js"></script>
+  <script src="js/threeViewer.js"></script>
+  <script src="js/orderForm.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
